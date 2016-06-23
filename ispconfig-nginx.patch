@@ -1,0 +1,23 @@
+diff --git a/interface/web/sites/templates/web_domain_advanced.htm b/interface/web/sites/templates/web_domain_advanced.htm
+index c938c2d..ea74bea 100755
+--- a/interface/web/sites/templates/web_domain_advanced.htm
++++ b/interface/web/sites/templates/web_domain_advanced.htm
+@@ -149,9 +149,9 @@
+         jQuery.getJSON('sites/ajax_get_json.php'+ '?' + Math.round(new Date().getTime()), {server_id : serverId, type : "getservertype"}, function(data) {
+             if(data.servertype == "nginx"){
+                 jQuery('.nginx').show();
+-                jQuery('.apache').hide();
++                jQuery('.apache').show();
+             } else {
+-                jQuery('.nginx').hide();
++                jQuery('.nginx').show();
+                 jQuery('.apache').show();
+             }
+         });
+@@ -176,4 +176,4 @@
+         });
+     }
+ 			
+-</script>
+\ No newline at end of file
++</script>

@@ -1,0 +1,149 @@
+diff --git a/plugins-available/apache2_plugin.inc.php b/plugins-available/apache2_plugin.inc.php
+index 5f81fa6..c5c60a1 100755
+--- a/plugins-available/apache2_plugin.inc.php
++++ b/plugins-available/apache2_plugin.inc.php
+@@ -89,6 +89,17 @@ class apache2_plugin {
+ 		$app->plugins->registerEvent('ftp_user_delete', $this->plugin_name, 'ftp_user_delete');
+ 
+ 	}
++	
++	function populate_docroot($web_folder_full) {
++		global $app, $conf;
++		$app->log("Populating docroot", LOGLEVEL_DEBUG);
++		if(is_dir($conf['rootpath'] . '/conf-custom/docroot/')) {
++			// cp -r docroot/. web/
++			$app->log("Copying custom docroot", LOGLEVEL_DEBUG);
++			$app->log('cp -r ' . $conf['rootpath'] . '/conf-custom/docroot/. ' . $web_folder_full . '/', LOGLEVEL_DEBUG);
++			exec('cp -r ' . $conf['rootpath'] . '/conf-custom/docroot/. ' . $web_folder_full . '/');
++		}
++	}
+ 
+ 	// Handle the creation of SSL certificates
+ 	function ssl($event_name, $data) {
+@@ -501,7 +512,7 @@ class apache2_plugin {
+ 		$app->system->web_folder_protection($data['new']['document_root'], false);
+ 
+ 		if(!is_dir($data['new']['document_root'].'/' . $web_folder)) $app->system->mkdirpath($data['new']['document_root'].'/' . $web_folder);
+-		if(!is_dir($data['new']['document_root'].'/' . $web_folder . '/error') and $data['new']['errordocs']) $app->system->mkdirpath($data['new']['document_root'].'/' . $web_folder . '/error');
++		//if(!is_dir($data['new']['document_root'].'/' . $web_folder . '/error') and $data['new']['errordocs']) $app->system->mkdirpath($data['new']['document_root'].'/' . $web_folder . '/error');
+ 		//if(!is_dir($data['new']['document_root'].'/'.$log_folder)) exec('mkdir -p '.$data['new']['document_root'].'/'.$log_folder);
+ 		if(!is_dir($data['new']['document_root'].'/ssl')) $app->system->mkdirpath($data['new']['document_root'].'/ssl');
+ 		if(!is_dir($data['new']['document_root'].'/cgi-bin')) $app->system->mkdirpath($data['new']['document_root'].'/cgi-bin');
+@@ -604,68 +615,18 @@ class apache2_plugin {
+ 
+ 		// normally $conf['templates'] = "/usr/local/ispconfig/server/conf";
+ 		if($this->action == 'insert' && ($data['new']['type'] == 'vhost' || $data['new']['type'] == 'vhostsubdomain')) {
++		# FIXME	
++			$this->populate_docroot(escapeshellcmd($data['new']['document_root']).'/' . $web_folder);
+ 
+-			// Copy the error pages
+-			if($data['new']['errordocs']) {
+-				$error_page_path = escapeshellcmd($data['new']['document_root']).'/' . $web_folder . '/error/';
+-				if (file_exists($conf['rootpath'] . '/conf-custom/error/'.substr(escapeshellcmd($conf['language']), 0, 2))) {
+-					exec('cp ' . $conf['rootpath'] . '/conf-custom/error/'.substr(escapeshellcmd($conf['language']), 0, 2).'/* '.$error_page_path);
+-				}
+-				else {
+-					if (file_exists($conf['rootpath'] . '/conf-custom/error/400.html')) {
+-						exec('cp '. $conf['rootpath'] . '/conf-custom/error/*.html '.$error_page_path);
+-					}
+-					else {
+-						exec('cp ' . $conf['rootpath'] . '/conf/error/'.substr(escapeshellcmd($conf['language']), 0, 2).'/* '.$error_page_path);
+-					}
+-				}
+-				exec('chmod -R a+r '.$error_page_path);
+-			}
+-
+-			if (file_exists($conf['rootpath'] . '/conf-custom/index/standard_index.html_'.substr(escapeshellcmd($conf['language']), 0, 2))) {
+-				exec('cp ' . $conf['rootpath'] . '/conf-custom/index/standard_index.html_'.substr(escapeshellcmd($conf['language']), 0, 2).' '.escapeshellcmd($data['new']['document_root']).'/' . $web_folder . '/index.html');
+-
+-				if(is_file($conf['rootpath'] . '/conf-custom/index/favicon.ico')) {
+-					exec('cp ' . $conf['rootpath'] . '/conf-custom/index/favicon.ico '.escapeshellcmd($data['new']['document_root']).'/' . $web_folder . '/');
+-				}
+-				if(is_file($conf['rootpath'] . '/conf-custom/index/robots.txt')) {
+-					exec('cp ' . $conf['rootpath'] . '/conf-custom/index/robots.txt '.escapeshellcmd($data['new']['document_root']).'/' . $web_folder . '/');
+-				}
+-				if(is_file($conf['rootpath'] . '/conf-custom/index/.htaccess')) {
+-					exec('cp ' . $conf['rootpath'] . '/conf-custom/index/.htaccess '.escapeshellcmd($data['new']['document_root']).'/' . $web_folder . '/');
+-				}
+-			}
+-			else {
+-				if (file_exists($conf['rootpath'] . '/conf-custom/index/standard_index.html')) {
+-					exec('cp ' . $conf['rootpath'] . '/conf-custom/index/standard_index.html '.escapeshellcmd($data['new']['document_root']).'/' . $web_folder . '/index.html');
+-				}
+-				else {
+-					exec('cp ' . $conf['rootpath'] . '/conf/index/standard_index.html_'.substr(escapeshellcmd($conf['language']), 0, 2).' '.escapeshellcmd($data['new']['document_root']).'/' . $web_folder . '/index.html');
+-					if(is_file($conf['rootpath'] . '/conf/index/favicon.ico')) exec('cp ' . $conf['rootpath'] . '/conf/index/favicon.ico '.escapeshellcmd($data['new']['document_root']).'/' . $web_folder . '/');
+-					if(is_file($conf['rootpath'] . '/conf/index/robots.txt')) exec('cp ' . $conf['rootpath'] . '/conf/index/robots.txt '.escapeshellcmd($data['new']['document_root']).'/' . $web_folder . '/');
+-					if(is_file($conf['rootpath'] . '/conf/index/.htaccess')) exec('cp ' . $conf['rootpath'] . '/conf/index/.htaccess '.escapeshellcmd($data['new']['document_root']).'/' . $web_folder . '/');
+-				}
+-			}
+-			exec('chmod -R a+r '.escapeshellcmd($data['new']['document_root']).'/' . $web_folder . '/');
+ 
+ 			//** Copy the error documents on update when the error document checkbox has been activated and was deactivated before
+ 		} elseif ($this->action == 'update' && ($data['new']['type'] == 'vhost' || $data['new']['type'] == 'vhostsubdomain') && $data['old']['errordocs'] == 0 && $data['new']['errordocs'] == 1) {
++		
+ 
+-			$error_page_path = escapeshellcmd($data['new']['document_root']).'/' . $web_folder . '/error/';
+-			if (file_exists($conf['rootpath'] . '/conf-custom/error/'.substr(escapeshellcmd($conf['language']), 0, 2))) {
+-				exec('cp ' . $conf['rootpath'] . '/conf-custom/error/'.substr(escapeshellcmd($conf['language']), 0, 2).'/* '.$error_page_path);
+-			}
+-			else {
+-				if (file_exists($conf['rootpath'] . '/conf-custom/error/400.html')) {
+-					exec('cp ' . $conf['rootpath'] . '/conf-custom/error/*.html '.$error_page_path);
+-				}
+-				else {
+-					exec('cp ' . $conf['rootpath'] . '/conf/error/'.substr(escapeshellcmd($conf['language']), 0, 2).'/* '.$error_page_path);
+-				}
+ 			}
+-			exec('chmod -R a+r '.$error_page_path);
+-			exec('chown -R '.$data['new']['system_user'].':'.$data['new']['system_group'].' '.$error_page_path);
+-		}  // end copy error docs
++			//exec('chmod -R a+r '.$error_page_path);
++			//exec('chown -R '.$data['new']['system_user'].':'.$data['new']['system_group'].' '.$error_page_path);
++		//}  // end copy error docs
+ 
+ 		// Set the quota for the user, but only for vhosts, not vhostsubdomains
+ 		if($username != '' && $app->system->is_user($username) && $data['new']['type'] == 'vhost') {
+@@ -1466,26 +1427,27 @@ class apache2_plugin {
+ 			$app->system->unlink($vhost_file);
+ 			$app->log('Removing file: '.$vhost_file, LOGLEVEL_DEBUG);
+ 		}
++# Disable stats directory
+ 
+ 		//* Create .htaccess and .htpasswd file for website statistics
+ 		//if(!is_file($data['new']['document_root'].'/' . $web_folder . '/stats/.htaccess') or $data['old']['document_root'] != $data['new']['document_root']) {
+-		if(!is_dir($data['new']['document_root'].'/' . $web_folder . '/stats')) $app->system->mkdir($data['new']['document_root'].'/' . $web_folder . '/stats');
+-		$ht_file = "AuthType Basic\nAuthName \"Members Only\"\nAuthUserFile ".$data['new']['document_root']."/web/stats/.htpasswd_stats\nrequire valid-user";
+-		$app->system->file_put_contents($data['new']['document_root'].'/' . $web_folder . '/stats/.htaccess', $ht_file);
+-		$app->system->chmod($data['new']['document_root'].'/' . $web_folder . '/stats/.htaccess', 0755);
+-		unset($ht_file);
++		//if(!is_dir($data['new']['document_root'].'/' . $web_folder . '/stats')) $app->system->mkdir($data['new']['document_root'].'/' . $web_folder . '/stats');
++		//$ht_file = "AuthType Basic\nAuthName \"Members Only\"\nAuthUserFile ".$data['new']['document_root']."/web/stats/.htpasswd_stats\nrequire valid-user";
++		//$app->system->file_put_contents($data['new']['document_root'].'/' . $web_folder . '/stats/.htaccess', $ht_file);
++		//$app->system->chmod($data['new']['document_root'].'/' . $web_folder . '/stats/.htaccess', 0755);
++		//unset($ht_file);
+ 		//}
+ 
+-		if(!is_file($data['new']['document_root'].'/web/stats/.htpasswd_stats') || $data['new']['stats_password'] != $data['old']['stats_password']) {
+-			if(trim($data['new']['stats_password']) != '') {
+-				$htp_file = 'admin:'.trim($data['new']['stats_password']);
+-				$app->system->web_folder_protection($data['new']['document_root'], false);
+-				$app->system->file_put_contents($data['new']['document_root'].'/web/stats/.htpasswd_stats', $htp_file);
+-				$app->system->web_folder_protection($data['new']['document_root'], true);
+-				$app->system->chmod($data['new']['document_root'].'/web/stats/.htpasswd_stats', 0755);
+-				unset($htp_file);
+-			}
+-		}
++		//if(!is_file($data['new']['document_root'].'/web/stats/.htpasswd_stats') || $data['new']['stats_password'] != $data['old']['stats_password']) {
++		//	if(trim($data['new']['stats_password']) != '') {
++		//		$htp_file = 'admin:'.trim($data['new']['stats_password']);
++		//		$app->system->web_folder_protection($data['new']['document_root'], false);
++		//		$app->system->file_put_contents($data['new']['document_root'].'/web/stats/.htpasswd_stats', $htp_file);
++		//		$app->system->web_folder_protection($data['new']['document_root'], true);
++		//		$app->system->chmod($data['new']['document_root'].'/web/stats/.htpasswd_stats', 0755);
++		//		unset($htp_file);
++		//	}
++		//}
+ 
+ 		//* Create awstats configuration
+ 		if($data['new']['stats_type'] == 'awstats' && ($data['new']['type'] == 'vhost' || $data['new']['type'] == 'vhostsubdomain')) {

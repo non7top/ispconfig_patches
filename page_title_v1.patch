@@ -1,0 +1,26 @@
+diff --git a/web/index.php b/web/index.php
+index c6f0ff3..959fe12 100755
+--- a/web/index.php
++++ b/web/index.php
+@@ -60,6 +60,8 @@ if(isset($_SESSION['show_error_msg'])) {
+ 	unset($_SESSION['show_error_msg']);
+ }
+ 
++$server_config = $app->getconf->get_server_config(1, 'server');
++$app->tpl->setVar('server_name', $server_config['hostname']);
+ 
+ $app->tpl_defaults();
+ $app->tpl->pparse();
+diff --git a/web/themes/default/templates/main.tpl.htm b/web/themes/default/templates/main.tpl.htm
+index dee8117..2774daf 100755
+--- a/web/themes/default/templates/main.tpl.htm
++++ b/web/themes/default/templates/main.tpl.htm
+@@ -3,7 +3,7 @@
+     <head>
+         <!--Possible? Vars in lang= ?-->
+         <meta charset="<tmpl_var name="html_content_encoding">" />
+-        <title><tmpl_var name="app_title"> <tmpl_var name="app_version"></title>
++        <title><tmpl_var name="server_name"> - <tmpl_var name="app_title"> <tmpl_var name="app_version"></title>
+         <meta http-equiv="X-UA-Compatible" content="IE=9"/>
+         <link href="themes/default/css/styles.css" rel="stylesheet" media="screen" type="text/css" />
+         <link href="themes/default/css/print.css" rel="stylesheet" media="print" type="text/css" />

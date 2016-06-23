@@ -1,0 +1,29 @@
+diff --git a/interface/web/sites/form/web_domain.tform.php b/interface/web/sites/form/web_domain.tform.php
+index 16a0c85..34e0dfd 100755
+--- a/interface/web/sites/form/web_domain.tform.php
++++ b/interface/web/sites/form/web_domain.tform.php
+@@ -555,13 +555,13 @@ $form["tabs"]['backup'] = array (
+ 
+ // }
+ 
+-if($_SESSION["s"]["user"]["typ"] == 'admin') {
++//if($_SESSION["s"]["user"]["typ"] == 'admin') {
+ 
+ 	$form["tabs"]['advanced'] = array (
+ 		'title'  => "Options",
+ 		'width'  => 100,
+ 		'template'  => "templates/web_domain_advanced.htm",
+-		'readonly' => false,
++		'readonly' => $web_domain_edit_readonly,
+ 		'fields'  => array (
+ 			//#################################
+ 			// Begin Datatable fields
+@@ -786,7 +786,7 @@ if($_SESSION["s"]["user"]["typ"] == 'admin') {
+ 		)
+ 	);
+ 
+-}
++//}
+ 
+ 
+ ?>
