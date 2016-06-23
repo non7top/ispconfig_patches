@@ -1,0 +1,17 @@
+--- create_jailkit_chroot.sh	2016-06-23 13:18:43.759849376 +0300
++++ /usr/local/ispconfig/server/scripts/create_jailkit_chroot.sh	2016-06-23 13:28:40.339021267 +0300
+@@ -18,6 +18,8 @@
+ CHROOT_APP_SECTIONS=$2
+ 
+ ## Change ownership of the chroot directory to root
++chattr -i $CHROOT_HOMEDIR
++chown root:root $(dirname $CHROOT_HOMEDIR)
+ chown root:root $CHROOT_HOMEDIR
+ 
+ ## Initialize the chroot into the specified directory with the specified applications
+@@ -41,3 +43,5 @@
+ then
+   ln /var/run/mysqld/mysqld.sock $CHROOT_HOMEDIR/var/run/mysqld/mysqld.sock
+ fi
++
++chattr +i $CHROOT_HOMEDIR
